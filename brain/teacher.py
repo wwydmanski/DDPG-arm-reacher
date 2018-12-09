@@ -4,6 +4,15 @@ import matplotlib.pyplot as plt
 
 
 class Teacher:
+    """Class that handles training of RL model in Unity environment
+
+    Attributes:
+        agent (Pytorch model): agent which will be trained
+        env (Unity environment): environment used for learning
+        num_agents (int): number of agents present at once
+        brain_name (str): name of used Unity brain
+    """
+
     def __init__(self, agent, env, brain_name, num_agents):
         self.agent = agent
         self.env = env
@@ -54,7 +63,8 @@ class Teacher:
                     mn = np.mean(scores_ep[-mean_window:])
                 else:
                     mn = np.mean(scores_ep[-i_episode:])
-                t.set_postfix(scores=mn, actor_loss=self.agent.actor_loss, critic_loss=self.agent.critic_loss)
+                t.set_postfix(scores=mn, actor_loss=self.agent.actor_loss,
+                              critic_loss=self.agent.critic_loss)
 
                 if mn >= solution_threshold:
                     print(
