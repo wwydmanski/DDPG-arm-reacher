@@ -9,7 +9,8 @@ BUFFER_SIZE = int(1e6)  # replay buffer size
 BATCH_SIZE = 256         # minibatch size
 GAMMA = 0.99            # discount factor
 TAU = 1e-3              # for soft update of target parameters
-LR = 1e-3               # learning rate
+LR_ACTOR = 1e-4         # learning rate of the actor 
+LR_CRITIC = 1e-3        # learning rate of the critic
 UPDATE_EVERY = 4
 devc = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 torch.backends.cudnn.benchmark=True
@@ -26,17 +27,26 @@ class Agent:
         self.critic_target = Critic(state_size,  action_size, 5).to(devc)
 
         ## HARD update
-        self.soft_update(self.actor, self.actor_target, 1.0)
-        self.soft_update(self.critic, self.critic_target, 1.0)
+        # self.soft_update(self.actor, self.actor_target, 1.0)
+        # self.soft_update(self.critic, self.critic_target, 1.0)
 
         self.memory = ReplayBuffer(action_size, BUFFER_SIZE, BATCH_SIZE, 5)
 
-        self.optimizer_actor = torch.optim.Adam(self.actor.parameters(), lr=1e-4)
-        self.optimizer_critic = torch.optim.Adam(self.critic.parameters(), lr=1e-3)
+        self.optimizer_actor = torch.optim.Adam(self.actor.parameters(), lr=LR_ACTOR)
+        self.optimizer_critic = torch.optim.Adam(self.critic.parameters(), lr=LR_CRITIC)
         self.t_step = 0
 
     def act(self, state, add_noise):
-        """ Act according to espilon-greedy strategy """
+        """Get action according to actor policy
+        
+        Arguments:
+            state {List[float]} -- Current observation of environment
+            add_noise {bool} -- Whether to add noise from Ornstein-Uhlenbeck process
+        
+        Returns:
+            ndarray[np.float32] -- Estimated best action
+        """
+
         state = torch.from_numpy(state).float().to(devc)
         self.actor.eval()
         with torch.no_grad():
@@ -60,9 +70,11 @@ class Agent:
                 self.learn(experiences, GAMMA)
 
     def learn(self, experiences, gamma):
-        """Update value parameters using given batch of experience tuples.
-        :param experiences: Tuple[torch.Tensor]. tuple of (s, a, r, s', done)
-        :param gamma: float. discount factor
+        """Update value parameters using given batch of experience tuples
+        
+        Arguments:
+            experiences {Tuple[torch.Tensor]} -- tuple of (s, a, r, s', done)
+            gamma {float} -- discount factor
         """
         states, actions, rewards, next_states, dones = experiences
 
@@ -73,7 +85,7 @@ class Agent:
         loss = torch.nn.functional.mse_loss(Q_expected, Q_target)
 
         self.optimizer_critic.zero_grad()
-        torch.nn.utils.clip_grad_norm_(self.critic.parameters(), 1)
+        # torch.nn.utils.clip_grad_norm_(self.critic.parameters(), 1)
         loss.backward()
         self.optimizer_critic.step()
 
@@ -96,9 +108,11 @@ class Agent:
     def soft_update(self, local_model, target_model, tau):
         """Soft update model parameters.
         θ_target = τ*θ_local + (1 - τ)*θ_target
-        :param local_model: PyTorch model. weights will be copied from
-        :param target_model: PyTorch model. weights will be copied to
-        :param tau: float. interpolation parameter
+
+        Arguments:
+            local_model {PyTorch model} -- model weights will be copied from
+            target_model {PyTorch model} -- model weights will be copied to
+            tau {float} -- interpolation parameter
         """
         iter_params = zip(target_model.parameters(), local_model.parameters())
         for target_param, local_param in iter_params:
