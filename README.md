@@ -36,8 +36,8 @@ You need to manually download environment binaries for your system:
 - [Windows (32-bit)](https://s3-us-west-1.amazonaws.com/udacity-drlnd/P2/Reacher/one_agent/Reacher_Windows_x86.zip)
 - [Windows (64-bit)](https://s3-us-west-1.amazonaws.com/udacity-drlnd/P2/Reacher/one_agent/Reacher_Windows_x86_64.zip)
   
-After downloading, unpack all files and place them in directory `data/`. Then, swap string in cell 4 
+After downloading, unpack all files and place them in directory `data/`. Then, swap string in cell 2 
 ```
-env = UnityEnvironment(file_name = "data/Banana.exe")
+env = UnityEnvironment(file_name='Reacher/Reacher.exe')
 ```
 with one proper to your OS. Notebook using pytorch implementation is in location `Continuous-control.ipynb`
