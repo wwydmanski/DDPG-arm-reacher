@@ -6,7 +6,7 @@ import random
 import copy
 
 BUFFER_SIZE = int(1e6)  # replay buffer size
-BATCH_SIZE = 64         # minibatch size
+BATCH_SIZE = 512         # minibatch size
 GAMMA = 0.99            # discount factor
 TAU = 1e-3              # for soft update of target parameters
 LR_ACTOR = 1e-4         # learning rate of the actor
@@ -16,27 +16,29 @@ device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 
 class Agent:
-    def __init__(self, state_size, action_size):
+    def __init__(self, state_size, action_size, random_seed=42):
         self.action_size = action_size
-        self.noise = OUNoise(action_size, 5)
+        self.noise = OUNoise(action_size, random_seed)
 
-        self.actor_local = Actor(state_size, action_size, 5).to(device)
-        self.actor_target = Actor(state_size, action_size, 5).to(device)
+        self.actor_local = Actor(state_size, action_size, random_seed).to(device)
+        self.actor_target = Actor(state_size, action_size, random_seed).to(device)
 
-        self.critic_local = Critic(state_size, action_size, 5).to(device)
-        self.critic_target = Critic(state_size, action_size, 5).to(device)
+        self.critic_local = Critic(state_size, action_size, random_seed).to(device)
+        self.critic_target = Critic(state_size, action_size, random_seed).to(device)
 
         # HARD update
         self.soft_update(self.actor_target, self.actor_target, 1.0)
         self.soft_update(self.critic_local, self.critic_target, 1.0)
 
-        self.memory = ReplayBuffer(action_size, BUFFER_SIZE, BATCH_SIZE, 5)
+        self.memory = ReplayBuffer(action_size, BUFFER_SIZE, BATCH_SIZE, random_seed)
 
         self.actor_optimizer = torch.optim.Adam(
             self.actor_local.parameters(), lr=LR_ACTOR)
         self.critic_optimizer = torch.optim.Adam(
             self.critic_local.parameters(), lr=LR_CRITIC)
         self.t_step = 0
+
+        self.episodes_passed = 1
 
     def act(self, state, add_noise):
         """Get action according to actor policy
@@ -56,7 +58,7 @@ class Agent:
         self.actor_local.train()
 
         if add_noise:
-            action_values += (self.noise.sample()-0.6)/2
+            action_values += (self.noise.sample()-0.6)/np.sqrt(self.episodes_passed)
 
         return np.clip(action_values, -1, 1)
 
@@ -88,7 +90,7 @@ class Agent:
         self.critic_loss = loss.cpu().data.numpy()
 
         self.critic_optimizer.zero_grad()
-        # torch.nn.utils.clip_grad_norm_(self.critic.parameters(), 1)
+        torch.nn.utils.clip_grad_norm_(self.critic_local.parameters(), 1)
         loss.backward()
         self.critic_optimizer.step()
 
@@ -120,6 +122,7 @@ class Agent:
 
     def reset(self):
         self.noise.reset()
+        self.episodes_passed += 1
 
 
 class OUNoise:
