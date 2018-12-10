@@ -27,21 +27,6 @@ class Teacher:
                 env_info = self.env.reset(train_mode=True)[self.brain_name]
                 states = env_info.vector_observations
                 scores = np.zeros(self.num_agents)
-                # while True:
-                #     actions = self.agent.act(states, True)
-
-                #     env_info = self.env.step(actions)[self.brain_name]
-                #     next_states, rewards, dones = self._get_info_from_env(
-                #         env_info)
-
-                #     scores += rewards
-
-                #     self.agent.step(
-                #         states, actions, rewards, next_states, dones)
-
-                #     states = next_states
-                #     if np.any(dones):
-                #         break
 
                 for _ in range(2000):
                     actions = self.agent.act(states, True)
