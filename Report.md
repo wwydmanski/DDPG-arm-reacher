@@ -49,9 +49,7 @@ Agent was able to solve the environment in 32 episodes (mean window starting at 
 ## Small breakthrougs
 Intermediate steps that helped the algorithm
 
-1. Adding batch_norm
-2. Using noise decay with $\frac{1}{sqrt(episode\_no)}$ rate
-3. Incorporating gradient clipping
+1. Incorporating the idea stating that "the bigger minibatch, the bigger the learning rate should be"
 
 ## Improvements ideas
 Introducing parameter noise could be a great improvement to quality of learning
