@@ -3,7 +3,7 @@ Showcase of DDPG implementation in PyTorch
 
 ![Result](insta.gif)
 
-An agent will learn how to follow the orbitin green sphere.
+An agent will learn how to follow the orbiting green sphere.
 
 ## Environment
 Agent is given a vector of 33 observations about corresponding to position, rotation, velocity, and angular velocities of the arm.
